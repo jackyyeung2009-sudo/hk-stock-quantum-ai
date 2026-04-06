@@ -1,26 +1,28 @@
-name: Update Stock Data
+name: Stock-Quantum-Auto
 on:
   schedule:
-    - cron: '*/15 1-8 * * 1-5' # 港股交易時段每 15 分鐘運行一次
+    - cron: '*/15 1-9 * * 1-5' 
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - uses: actions/checkout@v4  # 升級到 v4，解決 Node 20 警告
+      - name: Setup Python
+        uses: actions/setup-python@v5 # 升級到 v5
         with:
-          python-version: '3.9'
-      - name: Install dependencies
-        run: pip install yfinance pandas
-      - name: Run analysis
-        run: python main.py
-      - name: Commit and push changes
+          python-version: '3.11' # 使用更強大的 3.11 版本
+      - name: Install Libs
         run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
+          pip install --upgrade pip
+          pip install yfinance pandas requests beautifulsoup4 lxml
+      - name: Run Analysis
+        run: python main.py
+      - name: Push Data
+        run: |
+          git config --global user.name "AI-Bot"
+          git config --global user.email "bot@github.com"
           git add data.json
-          git commit -m "Update stock data" || exit 0
+          git commit -m "Auto Update Data" || exit 0
           git push
