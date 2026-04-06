@@ -1,1 +1,121 @@
-{}
+{
+    "1810.HK": {
+        "price": 30.88,
+        "lego_seq": [
+            "gray",
+            "gray",
+            "gray",
+            "gray",
+            "gray"
+        ],
+        "pattern": "觀察中",
+        "vol": "26022萬",
+        "raw_change": -0.03560278827918195,
+        "flow": "流向計算中",
+        "sector_strength": "板塊跟隨",
+        "name": "",
+        "update": "2026-04-06 12:49"
+    },
+    "1211.HK": {
+        "price": 103.9,
+        "lego_seq": [
+            "gray",
+            "gray",
+            "gray",
+            "gray",
+            "gray"
+        ],
+        "pattern": "🦴 骨頭洗盤",
+        "vol": "2583萬",
+        "raw_change": -0.007640835202304297,
+        "flow": "流向計算中",
+        "sector_strength": "板塊跟隨",
+        "name": "",
+        "update": "2026-04-06 12:49"
+    },
+    "3690.HK": {
+        "price": 80.25,
+        "lego_seq": [
+            "gray",
+            "gray",
+            "gray",
+            "gray",
+            "gray"
+        ],
+        "pattern": "觀察中",
+        "vol": "4718萬",
+        "raw_change": -0.020744319848063797,
+        "flow": "流向計算中",
+        "sector_strength": "強於板塊",
+        "name": "",
+        "update": "2026-04-06 12:49"
+    },
+    "1772.HK": {
+        "price": 73.1,
+        "lego_seq": [
+            "gray",
+            "gray",
+            "gray",
+            "gray",
+            "gray"
+        ],
+        "pattern": "✈️ 飛機起飛",
+        "vol": "1537萬",
+        "raw_change": 0.04652827589114561,
+        "flow": "流向計算中",
+        "sector_strength": "強於板塊",
+        "name": "",
+        "update": "2026-04-06 12:49"
+    },
+    "3393.HK": {
+        "price": 28.18,
+        "lego_seq": [
+            "gray",
+            "gray",
+            "gray",
+            "gray",
+            "gray"
+        ],
+        "pattern": "觀察中",
+        "vol": "414萬",
+        "raw_change": -0.05436238165637486,
+        "flow": "流向計算中",
+        "sector_strength": "板塊跟隨",
+        "name": "",
+        "update": "2026-04-06 12:49"
+    },
+    "2208.HK": {
+        "price": 13.58,
+        "lego_seq": [
+            "gray",
+            "gray",
+            "gray",
+            "gray",
+            "gray"
+        ],
+        "pattern": "觀察中",
+        "vol": "2921萬",
+        "raw_change": -0.035511363828785614,
+        "flow": "流向計算中",
+        "sector_strength": "板塊跟隨",
+        "name": "",
+        "update": "2026-04-06 12:49"
+    },
+    "2840.HK": {
+        "price": 3340.0,
+        "lego_seq": [
+            "gray",
+            "gray",
+            "gray",
+            "gray",
+            "gray"
+        ],
+        "pattern": "觀察中",
+        "vol": "9萬",
+        "raw_change": -0.015620394930739745,
+        "flow": "流向計算中",
+        "sector_strength": "板塊跟隨",
+        "name": "",
+        "update": "2026-04-06 12:49"
+    }
+}
