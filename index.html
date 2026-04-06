@@ -2,26 +2,26 @@
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <title>港股 AI 形態指揮部 V10.0 FINAL</title>
+    <title>港股 AI 形態指揮部 V11.0 FINAL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&display=swap');
         body { background-color: #020617; color: #f1f5f9; font-family: 'JetBrains Mono', sans-serif; }
-        .glass-card { background: #0f172a; border: 1px solid #1e293b; transition: all 0.3s; }
+        .glass-card { background: #0f172a; border: 1px solid #1e293b; transition: all 0.3s ease; }
         .lego-brick { width: 14px; height: 26px; border-radius: 4px; margin-right: 5px; }
-        .bg-red { background-color: #ef4444; box-shadow: 0 0 12px #ef4444; border: 1px solid rgba(255,255,255,0.2); }
-        .bg-blue { background-color: #3b82f6; box-shadow: 0 0 12px #3b82f6; border: 1px solid rgba(255,255,255,0.2); }
+        .bg-red { background-color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); border: 1px solid rgba(255,255,255,0.2); }
+        .bg-blue { background-color: #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); border: 1px solid rgba(255,255,255,0.2); }
         .bg-gray { background-color: #334155; }
-        .sector-header { border-left: 5px solid #3b82f6; padding-left: 15px; margin: 50px 0 25px 0; background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), transparent); }
+        .sector-title { border-left: 5px solid #3b82f6; padding-left: 15px; margin: 50px 0 25px 0; background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), transparent); }
     </style>
 </head>
 <body class="p-4 md:p-10">
 
-    <header class="max-w-7xl mx-auto mb-10 flex justify-between items-end border-b border-slate-800 pb-8">
+    <header class="max-w-7xl mx-auto mb-10 flex flex-col md:flex-row justify-between items-end border-b border-slate-800 pb-8">
         <div>
-            <h1 class="text-4xl font-black text-blue-500 uppercase tracking-tighter">COMMAND MATRIX V10</h1>
-            <p class="text-slate-500 text-[10px] mt-1 font-bold uppercase tracking-widest">張士佳 LEGO 視覺化 + 板塊分區 + 形態推斷</p>
+            <h1 class="text-4xl font-black text-blue-500 uppercase tracking-tighter">QUANTUM COMMAND CENTER</h1>
+            <p class="text-slate-500 text-[10px] mt-1 font-bold uppercase tracking-widest italic">Jack's Alpha Matrix V11.0</p>
         </div>
         <div class="text-right">
             <p id="clock-aest" class="text-emerald-400 font-bold text-xl uppercase"></p>
@@ -30,7 +30,7 @@
     </header>
 
     <main id="main-container" class="max-w-7xl mx-auto">
-        <div class="text-center py-20 text-slate-700 animate-pulse font-black text-2xl">最高算力同步中...</div>
+        <div class="text-center py-20 text-slate-700 animate-pulse font-black text-2xl uppercase">最高算力同步中...</div>
     </main>
 
     <script>
@@ -48,15 +48,15 @@
                 const container = document.getElementById('main-container');
                 container.innerHTML = '';
 
-                // 按板塊分組數據
-                const groups = data.reduce((acc, item) => {
+                // 【核心修正】將扁平數據按板塊重新分組
+                const grouped = data.reduce((acc, item) => {
                     if (!acc[item.sector]) acc[item.sector] = [];
                     acc[item.sector].push(item);
                     return acc;
                 }, {});
 
-                for (const [sectorName, stocks] of Object.entries(groups)) {
-                    let html = `<div class="sector-header py-3"><h2 class="text-2xl font-black text-slate-200 uppercase tracking-widest">${sectorName}</h2></div>
+                for (const [sectorName, stocks] of Object.entries(grouped)) {
+                    let html = `<div class="sector-title py-3"><h2 class="text-2xl font-black text-slate-200 uppercase tracking-widest">${sectorName}</h2></div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">`;
                     
                     stocks.forEach(s => {
@@ -82,8 +82,8 @@
                                         <div class="flex justify-center">${bricks}</div>
                                     </div>
                                     <div class="flex justify-between bg-slate-900/50 p-4 rounded-2xl border border-white/5 items-center">
-                                        <span class="text-[10px] text-slate-500 font-black uppercase">形態推斷</span>
-                                        <span class="text-sm font-bold text-yellow-400 italic tracking-tighter">${s.pattern}</span>
+                                        <span class="text-[10px] text-slate-500 font-black uppercase tracking-widest text-xs">形態推斷</span>
+                                        <span class="text-sm font-bold text-yellow-400 italic tracking-tighter uppercase">${s.pattern}</span>
                                     </div>
                                     <div class="bg-blue-600/5 p-4 rounded-2xl border border-blue-500/20">
                                         <p class="text-[9px] text-blue-400 font-black uppercase mb-1">Capital Flow (AAStocks)</p>
@@ -91,7 +91,7 @@
                                     </div>
                                 </div>
                                 <div class="mt-6 pt-4 border-t border-slate-800 text-[10px] text-slate-700 flex justify-between font-bold">
-                                    <span>MATRIX: ONLINE</span>
+                                    <span>MATRIX STATUS: ACTIVE</span>
                                     <span>SYNC: ${s.update}</span>
                                 </div>
                             </div>`;
@@ -99,7 +99,7 @@
                     html += `</div>`;
                     container.innerHTML += html;
                 }
-            } catch (e) { console.error("Load Error:", e); }
+            } catch (e) { console.error("Matrix Logic Error:", e); }
         }
 
         setInterval(updateTime, 1000); updateTime();
