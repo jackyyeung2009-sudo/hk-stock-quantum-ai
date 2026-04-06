@@ -3,92 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>港股 AI 形態算力矩陣 - V4.0</title>
+    <title>港股 AI 算力矩陣 V4.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
         body { font-family: 'JetBrains Mono', 'Microsoft JhengHei', monospace; background-color: #020617; color: #f8fafc; }
         .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
-        .lego-red { border-left: 5px solid #ef4444; box-shadow: -10px 0 20px rgba(239, 68, 68, 0.1); }
-        .lego-blue { border-left: 5px solid #3b82f6; box-shadow: -10px 0 20px rgba(59, 130, 246, 0.1); }
-        .pattern-glow { text-shadow: 0 0 10px rgba(250, 204, 21, 0.5); }
+        .lego-red { border-left: 5px solid #ef4444; }
+        .lego-blue { border-left: 5px solid #3b82f6; }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-10">
+<body class="p-4 md:p-10">
 
-    <header class="max-w-7xl mx-auto mb-10 flex flex-col lg:flex-row justify-between items-end border-b border-slate-800 pb-6">
+    <header class="max-w-7xl mx-auto mb-10 border-b border-slate-800 pb-6 flex flex-col md:flex-row justify-between items-end">
         <div>
-            <h1 class="text-4xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-emerald-400">
-                QUANTUM ALPHA <span class="text-xs font-normal text-slate-500 bg-slate-800 px-2 py-1 rounded ml-2">V4.0 FINAL</span>
-            </h1>
-            <p class="text-slate-400 mt-2"><i class="fas fa-brain text-emerald-500 mr-2"></i>AI 新貴 100/2513/3317 形態實時監控</p>
+            <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">QUANTUM ALPHA V4.1</h1>
+            <p class="text-slate-400 mt-2">AI 新貴 (100/2513/3317) 形態監控</p>
         </div>
-        <div class="mt-6 lg:mt-0 text-right">
-            <div id="market-badge" class="px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-slate-800 text-slate-400 border border-slate-700 mb-2 inline-block">Checking...</div>
-            <p class="text-sm font-bold text-blue-400" id="clock-aest">BRISBANE: --:--:--</p>
-            <p class="text-[10px] text-slate-500 uppercase font-bold" id="clock-hkt">HONG KONG: --:--:--</p>
+        <div class="text-right mt-4 md:mt-0">
+            <p class="text-sm font-bold text-blue-400" id="clock-aest">BRISBANE: --:--</p>
+            <p class="text-[10px] text-slate-500" id="clock-hkt">HONG KONG: --:--</p>
         </div>
     </header>
 
-    <main id="stock-grid" class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-        <div class="col-span-full py-20 text-center text-slate-600"><i class="fas fa-sync fa-spin text-3xl mb-4 text-blue-500"></i><p>正在加載 AI 標的與 LEGO 數據...</p></div>
+    <main id="stock-grid" class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div id="status" class="col-span-full text-center py-20 text-slate-500">正在執行最高算力握手...</div>
     </main>
 
-    <footer class="max-w-7xl mx-auto mt-20 text-center text-[10px] text-slate-700 border-t border-slate-900 pt-10">
-        <p>四大鐵律：零幻覺、零預設、時空握手、最高算力 | Jack's Trading Matrix</p>
-    </footer>
+    <div id="debug" class="max-w-7xl mx-auto mt-10 p-4 bg-red-900/10 border border-red-500/20 rounded-xl text-[10px] text-red-400 hidden"></div>
 
     <script>
         function updateClocks() {
             const now = new Date();
             const format = (tz) => new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now);
             document.getElementById('clock-aest').innerText = `BRISBANE: ${format('Australia/Brisbane')}`;
-            const hkt = format('Asia/Hong_Kong');
-            document.getElementById('clock-hkt').innerText = `HONG KONG: ${hkt}`;
-            const hr = parseInt(hkt.split(':')[0]);
-            const badge = document.getElementById('market-badge');
-            if ((hr >= 9 && hr < 12) || (hr >= 13 && hr < 16)) {
-                badge.innerText = "📅 MARKET OPEN"; badge.className = "px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-500/50";
-            } else {
-                badge.innerText = "收場 CLOSED"; badge.className = "px-3 py-1 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700";
-            }
+            document.getElementById('clock-hkt').innerText = `HONG KONG: ${format('Asia/Hong_Kong')}`;
         }
 
         async function loadData() {
             const container = document.getElementById('stock-grid');
+            const debug = document.getElementById('debug');
             try {
                 const res = await fetch('./data.json?t=' + Date.now());
+                if (!res.ok) throw new Error("找不到 data.json，請檢查 GitHub Actions 是否運行成功。");
                 const data = await res.json();
+                
+                if (Object.keys(data).length === 0) {
+                    container.innerHTML = `<div class="col-span-full py-20 text-center text-orange-500">⚠ 數據緩存為空，請手動觸發 GitHub Actions。</div>`;
+                    return;
+                }
+
                 container.innerHTML = '';
                 for (const [s, info] of Object.entries(data)) {
                     const isStrong = info.lego.includes("紅磚");
-                    const isWeak = info.lego.includes("藍磚");
                     container.innerHTML += `
-                        <div class="glass-card rounded-2xl p-6 transition-all hover:scale-[1.02] ${isStrong ? 'lego-red' : (isWeak ? 'lego-blue' : '')}">
-                            <div class="flex justify-between items-start mb-6">
-                                <div>
-                                    <h2 class="text-2xl font-bold">${s.split('.')[0]} <span class="text-xs text-slate-500 font-normal">${info.name || ''}</span></h2>
-                                    <span class="text-[10px] font-bold uppercase ${info.sector_strength === '強於同業' ? 'text-emerald-400' : 'text-orange-400'}">${info.sector_strength}</span>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-3xl font-black">${info.price}</div>
-                                    <div class="text-[10px] text-slate-500 font-mono">VOL: ${info.volume}</div>
-                                </div>
+                        <div class="glass-card rounded-2xl p-6 ${isStrong ? 'lego-red' : ''}">
+                            <div class="flex justify-between mb-4">
+                                <div><h2 class="text-2xl font-bold">${s.split('.')[0]}</h2><span class="text-[10px] text-emerald-400 font-bold">${info.name}</span></div>
+                                <div class="text-right"><div class="text-3xl font-black">${info.price}</div><div class="text-[10px] text-slate-500">${info.volume}</div></div>
                             </div>
-                            <div class="space-y-3">
-                                <div class="flex justify-between bg-slate-900/80 p-3 rounded-xl"><span class="text-[10px] text-slate-500 uppercase">Lego Signal</span><span class="font-bold ${isStrong ? 'text-red-500' : (isWeak ? 'text-blue-500' : 'text-slate-400')}">${info.lego}</span></div>
-                                <div class="flex justify-between bg-slate-900/80 p-3 rounded-xl"><span class="text-[10px] text-slate-500 uppercase">Pattern</span><span class="font-bold text-yellow-400 pattern-glow uppercase italic">${info.pattern}</span></div>
-                                <div class="flex flex-col bg-blue-500/5 p-3 rounded-xl border border-blue-500/20"><span class="text-[9px] text-blue-400 uppercase mb-1">AAStock Capital Flow</span><span class="text-sm font-bold text-emerald-400">${info.flow}</span></div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between bg-slate-900/50 p-3 rounded-lg"><span>LEGO</span><span class="font-bold ${isStrong ? 'text-red-500' : 'text-slate-400'}">${info.lego}</span></div>
+                                <div class="flex justify-between bg-slate-900/50 p-3 rounded-lg"><span>形態</span><span class="text-yellow-400 italic">${info.pattern}</span></div>
+                                <div class="flex flex-col bg-blue-500/5 p-3 rounded-lg"><span class="text-[9px] text-blue-400 uppercase">Capital Flow</span><span class="text-sm font-bold">${info.flow}</span></div>
                             </div>
-                            <div class="mt-4 text-[9px] text-slate-600 text-right font-bold">UPDATED: ${info.update}</div>
                         </div>
                     `;
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                debug.innerText = `DEBUG: ${e.message}`;
+                debug.classList.remove('hidden');
+            }
         }
         setInterval(updateClocks, 1000); updateClocks();
-        loadData(); setInterval(loadData, 60000);
+        loadData();
     </script>
 </body>
 </html>
