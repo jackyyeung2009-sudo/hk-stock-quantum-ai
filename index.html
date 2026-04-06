@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>港股智勝分析系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 p-8">
+    <h1 class="text-3xl font-bold text-blue-600 mb-6">🚀 港股實時形態分析 (AEST 對齊)</h1>
+    <div id="dashboard" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        </div>
+
+    <script>
+        fetch('data.json')
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('dashboard');
+                for (let stock in data) {
+                    container.innerHTML += `
+                        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-blue-500">
+                            <h2 class="text-xl font-bold">${stock}</h2>
+                            <p class="text-2xl font-mono">${data[stock].price}</p>
+                            <p class="text-sm ${data[stock].change.includes('-') ? 'text-red-500' : 'text-green-500'}">${data[stock].change}</p>
+                            <div class="mt-4">
+                                <span class="bg-yellow-100 px-2 py-1 rounded text-xs font-bold">LEGO: ${data[stock].lego}</span>
+                                <span class="bg-purple-100 px-2 py-1 rounded text-xs font-bold ml-2">形態: ${data[stock].pattern}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+    </script>
+</body>
+</html>
