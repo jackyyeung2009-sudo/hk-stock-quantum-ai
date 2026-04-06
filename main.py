@@ -7,13 +7,13 @@ import numpy as np
 from datetime import datetime
 import time
 
-# 戰區板塊定義 - 嚴格對應 AI 新貴名單
+# 戰區板塊定義 - 嚴格遵守 Jack 的清單
 SECTORS_MAP = {
     "AI 新貴 (100/2513/3317)": ["0100.HK", "2513.HK", "3317.HK"],
-    "科技與平台龍頭": ["1810.HK", "3690.HK", "0700.HK", "9988.HK"],
+    "科技龍頭與平台": ["1810.HK", "3690.HK", "0700.HK", "9988.HK"],
     "汽車與鋰電板塊": ["1211.HK", "1772.HK", "2015.HK"],
     "新能源與電力": ["3393.HK", "2208.HK", "0958.HK"],
-    "黃金避險商品": ["2840.HK", "GC=F"]
+    "黃金與商品避險": ["2840.HK", "GC=F"]
 }
 
 def get_aastock_flow(symbol):
@@ -26,11 +26,11 @@ def get_aastock_flow(symbol):
         flow = soup.find(id="cp_objQuote_lblCapitalInflow").text
         vol = soup.find(id="cp_objQuote_lblVolume").text
         return flow.strip(), vol.strip()
-    except: return "數據抓取中", "N/A"
+    except: return "流向計算中", "N/A"
 
 def analyze_logic(df):
     try:
-        # 修正 yfinance 2026 多層索引 Bug
+        # 【核心修正】徹底解決 yfinance 2026 多重索引導致的數據抓取失敗
         if isinstance(df.columns, pd.MultiIndex):
             df.columns = df.columns.get_level_values(0)
         
@@ -40,10 +40,10 @@ def analyze_logic(df):
         o = df['Open'].ffill()
         v = df['Volume'].ffill()
 
-        # LEGO 5D 磚頭點亮邏輯 (對比前5日高低)
+        # LEGO 5D 序列 (對比過去5日高低)
         lego = []
         for i in range(-5, 0):
-            prev_5d = df.iloc[i-10:i] # 往前推5日作為基準
+            prev_5d = df.iloc[i-5:i]
             if c.iloc[i] > prev_5d['High'].max(): lego.append("red")
             elif c.iloc[i] < prev_5d['Low'].min(): lego.append("blue")
             else: lego.append("gray")
@@ -51,9 +51,9 @@ def analyze_logic(df):
         # 命中率 70% 形態推斷
         pattern = "觀察中"
         ma5 = c.rolling(5).mean()
-        # ✈️ 飛機: 股價在5日線上且5日線角度向上
+        # ✈️ 飛機: 股價在5日線上且5日線轉強
         if c.iloc[-1] > ma5.iloc[-1] and ma5.iloc[-1] > ma5.iloc[-2]: pattern = "✈️ 飛機起飛"
-        # 🦴 骨頭: 上影線 > 實體 1.5 倍 (洗盤信號)
+        # 🦴 骨頭: 上影線長度 > 實體 1.5 倍
         elif (h.iloc[-1] - max(c.iloc[-1], o.iloc[-1])) > abs(c.iloc[-1]-o.iloc[-1])*1.5: pattern = "🦴 骨頭洗盤"
         # 👑 皇冠: 突破20日新高
         elif c.iloc[-1] >= h.tail(20).max() * 0.99: pattern = "👑 皇冠突破"
@@ -69,17 +69,16 @@ def analyze_logic(df):
 def main():
     final_data = []
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
-    names = {"0100.HK": "MINIMAX", "2513.HK": "智譜", "3317.HK": "迅策"}
+    names = {"0100.HK": "MINIMAX", "2513.HK": "智譜 AI", "3317.HK": "迅策科技"}
 
     for sector, stocks in SECTORS_MAP.items():
         for s in stocks:
             try:
-                # 抓取 60 天數據確保 LEGO 計算準確
-                df = yf.download(s, period="60d", interval="1d", progress=False)
+                df = yf.download(s, period="40d", interval="1d", progress=False)
                 analysis = analyze_logic(df)
                 if analysis:
                     flow, vol = get_aastock_flow(s) if ".HK" in s else ("N/A", "N/A")
-                    # 扁平化數據結構
+                    # 採用扁平化結構，防止前端讀取失敗
                     final_data.append({
                         "sector": sector, "symbol": s, "name": names.get(s, ""),
                         "flow": flow, "vol": vol, **analysis, "update": now
