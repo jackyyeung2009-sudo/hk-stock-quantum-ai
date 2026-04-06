@@ -7,16 +7,13 @@ import numpy as np
 from datetime import datetime
 import time
 
-# 標的與板塊同業地圖
-STOCKS_MAP = {
-    "0100.HK": ["2513.HK", "3317.HK", "0700.HK"], # AI 板塊 (MINIMAX/智譜/迅策)
-    "1810.HK": ["0700.HK", "9988.HK", "3690.HK"], # 科技板塊
-    "1211.HK": ["2015.HK", "9868.HK", "9866.HK"], # 汽車板塊
-    "3690.HK": ["9988.HK", "0700.HK", "1024.HK"], # 消費/外賣
-    "1772.HK": ["300750.SZ", "002460.SZ"],        # 鋰電
-    "3393.HK": ["1088.HK", "0902.HK", "0038.HK"], # 電力
-    "2208.HK": ["0958.HK", "0916.HK", "1798.HK"], # 風電
-    "2840.HK": ["GC=F", "PAXG-USD"]               # 黃金
+# 戰區板塊定義
+SECTORS = {
+    "AI 新貴": ["0100.HK", "2513.HK", "3317.HK"],
+    "科技龍頭": ["1810.HK", "3690.HK", "0700.HK", "9988.HK"],
+    "汽車與鋰電": ["1211.HK", "1772.HK", "2015.HK"],
+    "電力與能源": ["3393.HK", "2208.HK", "0916.HK"],
+    "黃金避險": ["2840.HK", "GC=F"]
 }
 
 def get_aastock_flow(symbol):
@@ -26,74 +23,68 @@ def get_aastock_flow(symbol):
     try:
         r = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(r.text, 'lxml')
+        # 抓取資金流向與成交量
         flow = soup.find(id="cp_objQuote_lblCapitalInflow").text
-        return flow.strip()
-    except: return "流向計算中"
+        vol = soup.find(id="cp_objQuote_lblVolume").text
+        return flow.strip(), vol.strip()
+    except: return "數據傳輸中", "N/A"
 
 def get_lego_sequence(df):
-    """生成過去 5 日的 LEGO 顏色序列"""
     sequence = []
-    # 確保有足夠數據計算 5 日突破
+    close = df['Close'].squeeze()
+    high = df['High'].squeeze()
+    low = df['Low'].squeeze()
     for i in range(-5, 0):
         try:
-            current_close = df['Close'].iloc[i]
-            # 參考過去 5 日的高低點
-            window = df.iloc[i-5:i]
-            prev_high = window['High'].max()
-            prev_low = window['Low'].min()
-            
-            if current_close > prev_high: sequence.append("red")
-            elif current_close < prev_low: sequence.append("blue")
+            curr = close.iloc[i]
+            prev_5d_high = high.iloc[i-5:i].max()
+            prev_5d_low = low.iloc[i-5:i].min()
+            if curr > prev_5d_high: sequence.append("red")
+            elif curr < prev_5d_low: sequence.append("blue")
             else: sequence.append("gray")
         except: sequence.append("gray")
     return sequence
 
-def pro_analysis(df):
-    c, v, h, l, o = df['Close'].squeeze(), df['Volume'].squeeze(), df['High'].squeeze(), df['Low'].squeeze(), df['Open'].squeeze()
-    ma5, ma20 = c.rolling(5).mean(), c.rolling(20).mean()
-    
-    pattern = "觀察中"
-    if c.iloc[-1] > ma5.iloc[-1] > ma20.iloc[-1]: pattern = "✈️ 飛機起飛"
-    elif (h.iloc[-1] - max(c.iloc[-1], o.iloc[-1])) > (abs(c.iloc[-1]-o.iloc[-1])*2): pattern = "🦴 骨頭洗盤"
-    elif c.iloc[-1] >= h.tail(60).max() * 0.99: pattern = "👑 皇冠突破"
-    
-    return {
-        "price": round(float(c.iloc[-1]), 3) if c.iloc[-1] < 2 else round(float(c.iloc[-1]), 2),
-        "lego_seq": get_lego_sequence(df),
-        "pattern": pattern,
-        "vol": f"{int(v.iloc[-1]/10000)}萬",
-        "raw_change": float(c.pct_change().iloc[-1])
-    }
+def get_pattern(df):
+    c, h, l, o = df['Close'].squeeze(), df['High'].squeeze(), df['Low'].squeeze(), df['Open'].squeeze()
+    ma5 = c.rolling(5).mean()
+    # ✈️ 飛機：均線多頭且角度向上
+    if c.iloc[-1] > ma5.iloc[-1] and ma5.iloc[-1] > ma5.iloc[-2]: return "✈️ 飛機起飛"
+    # 🦴 骨頭：上影線極長 (洗盤)
+    upper_shadow = h.iloc[-1] - max(c.iloc[-1], o.iloc[-1])
+    if upper_shadow > abs(c.iloc[-1] - o.iloc[-1]) * 1.5: return "🦴 骨頭洗盤"
+    # 👑 皇冠：創 20 日新高
+    if c.iloc[-1] >= h.tail(20).max(): return "👑 皇冠突破"
+    return "觀察中"
 
 def main():
     final_results = {}
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
-    names = {"0100.HK": "MINIMAX (100)", "2513.HK": "智譜 (2513)", "3317.HK": "迅策 (3317)"}
-
-    for main_stock, peers in STOCKS_MAP.items():
-        try:
-            df = yf.download(main_stock, period="60d", interval="1d", progress=False)
-            if df.empty: continue
-            
-            res = pro_analysis(df)
-            res['flow'] = get_aastock_flow(main_stock)
-            
-            # 計算板塊強度 (Peer Avg)
-            peer_changes = []
-            for p in peers:
-                p_df = yf.download(p, period="2d", interval="1d", progress=False)
-                if not p_df.empty: peer_changes.append(p_df['Close'].pct_change().iloc[-1])
-            
-            avg_peer = np.mean(peer_changes) if peer_changes else 0
-            res['sector_strength'] = "強於板塊" if res['raw_change'] > avg_peer else "板塊跟隨"
-            res['name'] = names.get(main_stock, "")
-            res['update'] = current_time
-            final_results[main_stock] = res
-            time.sleep(0.5)
-        except: continue
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
     
+    for sector, members in SECTORS.items():
+        sector_data = []
+        for s in members:
+            try:
+                df = yf.download(s, period="40d", interval="1d", progress=False)
+                if df.empty: continue
+                
+                flow, vol_real = get_aastock_flow(s)
+                res = {
+                    "symbol": s,
+                    "price": round(float(df['Close'].iloc[-1]), 3),
+                    "lego": get_lego_sequence(df),
+                    "pattern": get_pattern(df),
+                    "flow": flow,
+                    "vol": vol_real,
+                    "change": f"{round(df['Close'].pct_change().iloc[-1]*100, 2)}%"
+                }
+                sector_data.append(res)
+                time.sleep(0.5)
+            except: continue
+        final_results[sector] = sector_data
+
     with open('data.json', 'w', encoding='utf-8') as f:
-        json.dump(final_results, f, ensure_ascii=False, indent=4)
+        json.dump({"update": now, "sectors": final_results}, f, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
     main()
