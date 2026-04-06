@@ -3,7 +3,7 @@ import json
 import pandas as pd
 
 # 定義標的 (HK 股代號後加 .HK)
-stocks = ["1810.HK", "1211.HK", "3690.HK", "2840.HK", "2208.HK", "1772.HK", "3393.HK"]
+stocks = ["1810.HK", "1211.HK", "3690.HK", "2840.HK", "2208.HK", "1772.HK", "3393.HK", "0100.HK", "2513.HK"]
 
 def analyze_patterns(df):
     # 簡單示例：咖啡杯形態邏輯 (需搭配最高算力精確化)
