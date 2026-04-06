@@ -20,67 +20,66 @@ STOCKS_MAP = {
 def get_aastock_flow(symbol):
     sid = symbol.split('.')[0].zfill(5)
     url = f"http://www.aastocks.com/tc/stocks/analysis/stock-quote-details.aspx?symbol={sid}"
-    headers = {'User-Agent': 'Mozilla/5.0'}
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     try:
         r = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(r.text, 'lxml')
         flow = soup.find(id="cp_objQuote_lblCapitalInflow").text
-        return flow
-    except: return "N/A"
+        return flow.strip()
+    except: return "流向抓取中"
 
-def pro_analysis(df, symbol):
-    """最高算力形態識別公式"""
-    c = df['Close']
-    v = df['Volume']
-    h = df['High']
-    l = df['Low']
-    
-    # 1. 飛機起飛 (Slope Analysis)
-    ma5 = c.rolling(5).mean()
-    ma10 = c.rolling(10).mean()
-    slope = (ma5.iloc[-1] - ma5.iloc[-3]) / ma5.iloc[-3] * 100
-    is_plane = slope > 2 and c.iloc[-1] > ma5.iloc[-1] > ma10.iloc[-1]
-    
-    # 2. 咖啡杯 (Cup and Handle)
-    # 尋找過去30天是否有圓弧底，且目前處於縮量回踩
-    min_idx = c.tail(30).idxmin()
-    is_cup = c.iloc[-1] > c.tail(30).mean() and v.iloc[-1] < v.tail(5).mean()
-    
-    # 3. 皇冠與骨頭 (Shadow analysis)
-    upper_shadow = (h.iloc[-1] - max(c.iloc[-1], df['Open'].iloc[-1]))
-    body = abs(c.iloc[-1] - df['Open'].iloc[-1])
-    is_bone = upper_shadow > body * 2 # 骨頭：長上影線
-    
-    # LEGO 判定
-    lego = "整理"
-    if c.iloc[-1] > h.iloc[-6:-1].max() and v.iloc[-1] > v.tail(10).mean():
-        lego = "強勢紅磚"
-    
-    pattern = "觀察"
-    if is_plane: pattern = "✈️ 飛機起飛"
-    elif is_cup: pattern = "☕ 咖啡杯柄"
-    elif is_bone: pattern = "🦴 骨頭洗盤"
-    
-    return {"price": round(float(c.iloc[-1]), 2), "lego": lego, "pattern": pattern, "vol": int(v.iloc[-1])}
+def pro_analysis(df):
+    try:
+        c, v, h, l, o = df['Close'].squeeze(), df['Volume'].squeeze(), df['High'].squeeze(), df['Low'].squeeze(), df['Open'].squeeze()
+        
+        # 張士佳 LEGO 邏輯 (5日磚頭)
+        lego = "整理"
+        if c.iloc[-1] > h.iloc[-6:-1].max() and v.iloc[-1] > v.tail(10).mean(): lego = "強勢紅磚"
+        elif c.iloc[-1] < l.iloc[-6:-1].min(): lego = "弱勢藍磚"
+
+        # 形態識別 (命中率優化)
+        pattern = "觀察中"
+        ma5, ma20 = c.rolling(5).mean(), c.rolling(20).mean()
+        
+        # 1. 飛機起飛 (均線多頭)
+        if c.iloc[-1] > ma5.iloc[-1] > ma20.iloc[-1] and (ma5.iloc[-1] > ma5.iloc[-2]): pattern = "✈️ 飛機起飛"
+        # 2. 咖啡杯柄 (縮量)
+        elif c.iloc[-1] > c.iloc[-20] * 0.98 and v.iloc[-1] < v.tail(5).mean(): pattern = "☕ 咖啡杯柄"
+        # 3. 骨頭形態 (長上影線洗盤)
+        upper_shadow = h.iloc[-1] - max(c.iloc[-1], o.iloc[-1])
+        body = abs(c.iloc[-1] - o.iloc[-1])
+        if upper_shadow > (body * 2) and body > 0: pattern = "🦴 骨頭洗盤"
+        # 4. 皇冠形態 (新高)
+        if c.iloc[-1] >= h.tail(60).max() * 0.99: pattern = "👑 皇冠突破"
+
+        return {
+            "price": round(float(c.iloc[-1]), 2), "lego": lego, "pattern": pattern,
+            "volume": f"{int(v.iloc[-1]/10000)}萬", "raw_change": float(c.pct_change().iloc[-1])
+        }
+    except: return None
 
 def main():
     final_results = {}
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     for main_stock, peers in STOCKS_MAP.items():
         try:
-            df = yf.download(main_stock, period="60d", interval="1d", progress=False)
-            main_data = pro_analysis(df, main_stock)
-            main_data['flow'] = get_aastock_flow(main_stock)
+            df = yf.download(main_stock, period="90d", interval="1d", progress=False)
+            if df.empty: continue
+            res = pro_analysis(df)
+            if not res: continue
             
-            # 獲取同業強度 (最高算力橫向對比)
-            peer_perf = 0
+            peer_changes = []
             for p in peers:
-                p_df = yf.download(p, period="2d", interval="1d", progress=False)
-                peer_perf += p_df['Close'].pct_change().iloc[-1]
+                p_df = yf.download(p, period="5d", interval="1d", progress=False)
+                if not p_df.empty: peer_changes.append(p_df['Close'].pct_change().iloc[-1])
             
-            main_data['sector_strength'] = "強於同業" if (df['Close'].pct_change().iloc[-1] > (peer_perf/len(peers))) else "弱於同業"
-            final_results[main_stock] = main_data
+            avg_peer = np.mean(peer_changes) if peer_changes else 0
+            res['sector_strength'] = "強於同業" if res['raw_change'] > avg_peer else "弱於同業"
+            res['flow'] = get_aastock_flow(main_stock)
+            res['update'] = current_time
+            final_results[main_stock] = res
         except: continue
-
+    
     with open('data.json', 'w', encoding='utf-8') as f:
         json.dump(final_results, f, ensure_ascii=False, indent=4)
 
