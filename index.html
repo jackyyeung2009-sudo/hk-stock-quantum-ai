@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>港股智勝 AI 算力矩陣 - 專業版</title>
+    <title>港股 AI 形態算力矩陣</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -13,7 +13,6 @@
         .lego-red { border-left: 5px solid #ef4444; box-shadow: -10px 0 20px rgba(239, 68, 68, 0.1); }
         .lego-blue { border-left: 5px solid #3b82f6; box-shadow: -10px 0 20px rgba(59, 130, 246, 0.1); }
         .pattern-glow { text-shadow: 0 0 8px rgba(250, 204, 21, 0.6); }
-        .btn-refresh { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-10">
@@ -21,135 +20,69 @@
     <header class="max-w-7xl mx-auto mb-10 flex flex-col lg:flex-row justify-between items-end border-b border-slate-800 pb-6">
         <div>
             <h1 class="text-4xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-emerald-400">
-                QUANTUM ALPHA MATRIX <span class="text-xs font-normal text-slate-500 bg-slate-800 px-2 py-1 rounded ml-2">V3.6 PRO</span>
+                QUANTUM ALPHA <span class="text-xs font-normal text-slate-500 bg-slate-800 px-2 py-1 rounded ml-2">V3.8 AI+</span>
             </h1>
-            <p class="text-slate-400 mt-2 flex items-center gap-2">
-                <i class="fas fa-microchip text-emerald-500"></i> 張士佳 LEGO 系統 + 複合形態實時監控 (15m Sync)
-            </p>
+            <p class="text-slate-400 mt-2"><i class="fas fa-robot text-emerald-500"></i> AI 新貴 + LEGO 形態實時分析系統</p>
         </div>
-        
-        <div class="mt-6 lg:mt-0 flex flex-col items-end gap-1">
-            <div id="market-badge" class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-slate-800 text-slate-400 border border-slate-700">
-                Detecting Market Status...
-            </div>
-            <div class="flex items-center gap-4 mt-2">
-                <div class="text-right">
-                    <p class="text-sm font-bold text-blue-400" id="clock-aest">AEST --:--:--</p>
-                    <p class="text-[10px] text-slate-500 uppercase tracking-tighter" id="clock-hkt">HKT --:--:--</p>
-                </div>
-                <button onclick="loadData()" class="btn-refresh p-3 rounded-xl hover:scale-110 active:scale-95 transition-transform shadow-lg">
-                    <i class="fas fa-sync-alt text-white"></i>
-                </button>
-            </div>
+        <div class="mt-6 lg:mt-0 text-right">
+            <div id="market-badge" class="px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-slate-800 text-slate-400 border border-slate-700 mb-2 inline-block">Syncing...</div>
+            <p class="text-sm font-bold text-blue-400" id="clock-aest">BRISBANE: --:--:--</p>
+            <p class="text-[10px] text-slate-500 uppercase" id="clock-hkt">HONG KONG: --:--:--</p>
         </div>
     </header>
 
     <main id="stock-grid" class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-        <div id="loading-state" class="col-span-full py-20 text-center">
-            <i class="fas fa-circle-notch fa-spin text-4xl text-blue-500 mb-4"></i>
-            <p class="text-slate-500 font-bold">正在同步 GitHub 數據，請稍候約 1-2 分鐘...</p>
-        </div>
+        <div class="col-span-full py-20 text-center text-slate-500"><i class="fas fa-circle-notch fa-spin text-3xl mb-4 text-blue-500"></i><p>算力分憂中...</p></div>
     </main>
 
-    <footer class="max-w-7xl mx-auto mt-20 text-center border-t border-slate-900 pt-10 pb-10">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-[10px] text-slate-600 uppercase">
-            <div>零幻覺檢測：<span class="text-emerald-800">ACTIVE</span></div>
-            <div>形態勝率：<span class="text-emerald-800">70%+ CALIBRATED</span></div>
-            <div>算力來源：<span class="text-emerald-800">GITHUB ACTIONS</span></div>
-            <div>數據源：<span class="text-emerald-800">AASTOCKS / YF</span></div>
-        </div>
+    <footer class="max-w-7xl mx-auto mt-20 text-center text-[10px] text-slate-700 border-t border-slate-900 pt-10">
+        <p>命中率 70% 鐵律執行中 | AEST/HKT 時空握手 | Sunnybank Hills 基站</p>
     </footer>
 
     <script>
-        // 強化的時鐘系統 (確保不報錯)
         function updateClocks() {
-            try {
-                const now = new Date();
-                const aest = new Intl.DateTimeFormat('en-AU', { 
-                    timeZone: 'Australia/Brisbane', 
-                    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false 
-                }).format(now);
-                
-                const hkt = new Intl.DateTimeFormat('en-GB', { 
-                    timeZone: 'Asia/Hong_Kong', 
-                    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false 
-                }).format(now);
-                
-                document.getElementById('clock-aest').innerText = `BRISBANE: ${aest}`;
-                document.getElementById('clock-hkt').innerText = `HONG KONG: ${hkt}`;
-                
-                const hktHour = parseInt(hkt.split(':')[0]);
-                let status = "收場 Closed";
-                let color = "text-slate-400 bg-slate-800";
-                
-                if (hktHour >= 9 && hktHour < 12) { status = "📅 Morning Session"; color = "text-emerald-400 bg-emerald-950/30 border-emerald-500/50"; }
-                else if (hktHour >= 12 && hktHour < 13) { status = "☕ Lunch Break"; color = "text-blue-400 bg-blue-950/30 border-blue-500/50"; }
-                else if (hktHour >= 13 && hktHour < 16) { status = "📅 Afternoon Session"; color = "text-emerald-400 bg-emerald-950/30 border-emerald-500/50"; }
-                
-                const badge = document.getElementById('market-badge');
-                badge.innerText = status;
-                badge.className = `px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${color}`;
-            } catch (e) { console.error("Clock error:", e); }
-        }
-
-        // 核心數據加載
-        async function loadData() {
-            const container = document.getElementById('stock-grid');
-            try {
-                const response = await fetch('data.json?t=' + Date.now());
-                if (!response.ok) throw new Error("File not ready");
-                const data = await response.json();
-                
-                container.innerHTML = '';
-                for (const [stock, info] of Object.entries(data)) {
-                    const isStrong = info.lego && info.lego.includes("紅磚");
-                    const isWeak = info.lego && info.lego.includes("藍磚");
-                    const legoClass = isStrong ? 'lego-red' : (isWeak ? 'lego-blue' : '');
-                    
-                    container.innerHTML += `
-                        <div class="glass-card rounded-2xl p-6 hover:translate-y-[-5px] ${legoClass}">
-                            <div class="flex justify-between items-start mb-6">
-                                <div>
-                                    <h2 class="text-2xl font-bold tracking-tighter">${stock.split('.')[0]}</h2>
-                                    <div class="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-widest">
-                                        <i class="fas fa-chart-line mr-1 text-blue-500"></i> ${info.sector_strength || 'Sector Sync'}
-                                    </div>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-3xl font-black ${isStrong ? 'text-white' : 'text-slate-300'}">${info.price || '0.00'}</div>
-                                    <div class="text-[10px] text-slate-500 font-mono italic font-bold">VOL: ${info.volume || '0'}</div>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-1 gap-3">
-                                <div class="flex justify-between items-center bg-slate-900/80 p-3 rounded-xl border border-white/5">
-                                    <span class="text-[10px] text-slate-500 font-bold uppercase">Lego System</span>
-                                    <span class="text-sm font-black ${isStrong ? 'text-red-500' : (isWeak ? 'text-blue-500' : 'text-slate-400')}">${info.lego}</span>
-                                </div>
-                                <div class="flex justify-between items-center bg-slate-900/80 p-3 rounded-xl border border-white/5">
-                                    <span class="text-[10px] text-slate-500 font-bold uppercase">Pattern</span>
-                                    <span class="text-sm font-black text-yellow-400 pattern-glow italic uppercase">${info.pattern}</span>
-                                </div>
-                                <div class="flex flex-col bg-blue-600/5 p-3 rounded-xl border border-blue-500/20">
-                                    <div class="text-[9px] text-blue-400 font-black uppercase mb-1">AAStock Capital Flow</div>
-                                    <div class="text-sm text-emerald-400 font-bold">${info.flow || 'N/A'}</div>
-                                </div>
-                            </div>
-                            <div class="mt-6 flex justify-between items-center text-[9px] text-slate-600 font-mono uppercase border-t border-slate-800 pt-4">
-                                <span><i class="fas fa-check-circle text-emerald-500 mr-1"></i> Sync Success</span>
-                                <span>Update: ${info.update || '--'}</span>
-                            </div>
-                        </div>
-                    `;
-                }
-            } catch (error) {
-                console.log("Waiting for data...");
-                setTimeout(loadData, 5000); // 如果沒讀到數據，5秒後自動重試
+            const now = new Date();
+            const format = (tz) => new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now);
+            document.getElementById('clock-aest').innerText = `BRISBANE: ${format('Australia/Brisbane')}`;
+            const hkt = format('Asia/Hong_Kong');
+            document.getElementById('clock-hkt').innerText = `HONG KONG: ${hkt}`;
+            const hr = parseInt(hkt.split(':')[0]);
+            const badge = document.getElementById('market-badge');
+            if ((hr >= 9 && hr < 12) || (hr >= 13 && hr < 16)) {
+                badge.innerText = "📅 MARKET OPEN"; badge.className = "px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-500/50";
+            } else {
+                badge.innerText = "收場 CLOSED"; badge.className = "px-3 py-1 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700";
             }
         }
 
-        setInterval(updateClocks, 1000);
-        updateClocks();
-        loadData();
+        async function loadData() {
+            const container = document.getElementById('stock-grid');
+            try {
+                const res = await fetch('./data.json?t=' + Date.now());
+                const data = await res.json();
+                container.innerHTML = '';
+                for (const [s, info] of Object.entries(data)) {
+                    const isStrong = info.lego.includes("紅磚");
+                    const isWeak = info.lego.includes("藍磚");
+                    container.innerHTML += `
+                        <div class="glass-card rounded-2xl p-6 ${isStrong ? 'lego-red' : (isWeak ? 'lego-blue' : '')}">
+                            <div class="flex justify-between items-start mb-6">
+                                <div><h2 class="text-2xl font-bold">${s.split('.')[0]}</h2><span class="text-[10px] ${info.sector_strength === '強於同業' ? 'text-emerald-400' : 'text-orange-400'} font-bold uppercase">${info.sector_strength}</span></div>
+                                <div class="text-right"><div class="text-3xl font-black">${info.price}</div><div class="text-[10px] text-slate-500 font-mono">VOL: ${info.volume}</div></div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex justify-between bg-slate-900/80 p-3 rounded-xl"><span class="text-[10px] text-slate-500">LEGO 磚頭</span><span class="font-bold ${isStrong ? 'text-red-500' : (isWeak ? 'text-blue-500' : 'text-slate-400')}">${info.lego}</span></div>
+                                <div class="flex justify-between bg-slate-900/80 p-3 rounded-xl"><span class="text-[10px] text-slate-500">形態推斷</span><span class="font-bold text-yellow-400 pattern-glow uppercase italic">${info.pattern}</span></div>
+                                <div class="flex flex-col bg-blue-500/5 p-3 rounded-xl border border-blue-500/20"><span class="text-[9px] text-blue-500 uppercase mb-1">Capital Flow (AAStock)</span><span class="text-sm font-bold text-blue-300">${info.flow}</span></div>
+                            </div>
+                            <div class="mt-4 text-[9px] text-slate-600 text-right uppercase tracking-tighter">Updated: ${info.update}</div>
+                        </div>
+                    `;
+                }
+            } catch (e) { console.error(e); }
+        }
+        setInterval(updateClocks, 1000); updateClocks();
+        loadData(); setInterval(loadData, 60000);
     </script>
 </body>
 </html>
