@@ -1,118 +1,57 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-HK">
 <head>
-    <title>港股智勝分析系統</title>
-   <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <title>港股智勝分析矩陣</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
-        body { font-family: 'JetBrains Mono', monospace; background-color: #0f172a; color: #e2e8f0; }
-        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-        .lego-red { border-left: 6px solid #ef4444; background: linear-gradient(90deg, rgba(239, 68, 68, 0.1) 0%, transparent 100%); }
-        .lego-blue { border-left: 6px solid #3b82f6; background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%); }
-        .glow { text-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+        body { background-color: #0f172a; color: #e2e8f0; font-family: sans-serif; }
+        .card { background: #1e293b; border-left: 4px solid #3b82f6; }
+        .strong { border-left-color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.2); }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-8">
-
-    <header class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-end border-b border-slate-700 pb-4">
-        <div>
-            <h1 class="text-4xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
-                QUANTUM ALPHA <span class="text-sm font-normal text-slate-500">v3.0</span>
-            </h1>
-            <p class="text-slate-400 mt-1">張士佳 LEGO 系統 + 複合形態實時監控</p>
+<body class="p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold mb-2 text-blue-400">🚀 港股形態算力矩陣</h1>
+        <p id="time-display" class="text-slate-500 mb-8 text-sm font-mono"></p>
+        
+        <div id="grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <p class="col-span-3 text-center py-20 text-slate-600">正在調用 GitHub 數據...</p>
         </div>
-        <div class="text-right mt-4 md:mt-0">
-            <div id="market-status" class="text-xs font-bold px-2 py-1 rounded bg-slate-800 text-slate-400 inline-block mb-1">
-                LOADING MARKET STATUS...
-            </div>
-            <p class="text-sm text-blue-400 font-bold" id="clock-aest"></p>
-            <p class="text-xs text-slate-500" id="clock-hkt"></p>
-        </div>
-    </header>
-
-    <main id="stock-grid" class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="animate-pulse flex space-x-4">正在啟動算力引擎...</div>
-    </main>
-
-    <footer class="max-w-7xl mx-auto mt-12 text-center text-slate-600 text-xs border-t border-slate-800 pt-6">
-        <p>數據來源：AAStocks (實時資金流) & yfinance | 技術邏輯：張士佳 LEGO 磚頭理論</p>
-        <p class="mt-2 text-emerald-600/50">零幻覺執行中 • 最高算力代勞分憂</p>
-    </footer>
+    </div>
 
     <script>
-        // 時鐘與交易階段判定 (規則 3: 時空握手)
-        function updateClocks() {
-            const now = new Date();
-            const aest = now.toLocaleString('zh-HK', { timeZone: 'Australia/Brisbane' });
-            const hkt = now.toLocaleString('zh-HK', { timeZone: 'Asia/Hong_Kong' });
-            document.getElementById('clock-aest').innerText = `AEST: ${aest}`;
-            document.getElementById('clock-hkt').innerText = `HKT: ${hkt}`;
-            
-            const hours = now.getUTCHours() + 8; // HKT
-            let status = "收場 (Market Closed)";
-            if (hours >= 9 && hours < 12) status = "📅 開場 (Morning Session)";
-            else if (hours >= 12 && hours < 13) status = "☕ 中場休息 (Lunch)";
-            else if (hours >= 13 && hours < 16) status = "📅 交易中 (Afternoon)";
-            document.getElementById('market-status').innerText = status;
-        }
-        setInterval(updateClocks, 1000);
-
-        // 讀取 data.json 並渲染
-        async function loadData() {
+        async function updateData() {
             try {
-                const response = await fetch('data.json?t=' + new Date().getTime());
-                const data = await response.json();
-                const container = document.getElementById('stock-grid');
-                container.innerHTML = '';
-
-                for (const [symbol, info] of Object.entries(data)) {
+                const res = await fetch('data.json?t=' + Date.now());
+                const data = await res.json();
+                const grid = document.getElementById('grid');
+                grid.innerHTML = '';
+                
+                for (const [s, info] of Object.entries(data)) {
                     const isStrong = info.lego.includes("紅磚");
-                    const cardClass = isStrong ? 'lego-red' : (info.lego.includes("藍磚") ? 'lego-blue' : '');
-                    
-                    container.innerHTML += `
-                        <div class="glass-card rounded-2xl p-6 transition-all hover:scale-[1.02] hover:shadow-2xl ${cardClass}">
-                            <div class="flex justify-between items-start mb-4">
-                                <div>
-                                    <h2 class="text-2xl font-bold glow">${symbol.replace('.HK','')}</h2>
-                                    <span class="text-[10px] text-slate-500 uppercase tracking-widest">${symbol}</span>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-2xl font-black ${info.price > 0 ? 'text-white' : 'text-slate-600'}">${info.price}</div>
-                                    <div class="text-[10px] text-emerald-400 font-bold">${info.volume} VOL</div>
-                                </div>
+                    grid.innerHTML += `
+                        <div class="card p-6 rounded-xl ${isStrong ? 'strong' : ''}">
+                            <div class="flex justify-between items-center mb-4">
+                                <span class="text-2xl font-bold">${s.split('.')[0]}</span>
+                                <span class="text-xl font-mono text-emerald-400">${info.price}</span>
                             </div>
-
-                            <div class="space-y-3">
-                                <div class="flex justify-between items-center bg-slate-900/50 p-2 rounded-lg">
-                                    <span class="text-xs text-slate-400">張士佳 LEGO</span>
-                                    <span class="text-sm font-bold ${isStrong ? 'text-red-400' : 'text-blue-400'}">${info.lego}</span>
-                                </div>
-                                
-                                <div class="flex justify-between items-center bg-slate-900/50 p-2 rounded-lg">
-                                    <span class="text-xs text-slate-400">形態推斷</span>
-                                    <span class="text-sm font-bold text-yellow-400 italic">${info.pattern}</span>
-                                </div>
-
-                                <div class="flex flex-col bg-slate-900/50 p-2 rounded-lg border border-emerald-500/20">
-                                    <span class="text-[10px] text-emerald-500 font-bold uppercase mb-1">AAStock 實時資金流</span>
-                                    <span class="text-sm text-emerald-300">${info.flow}</span>
-                                </div>
+                            <div class="space-y-2 text-sm">
+                                <p class="flex justify-between"><span>LEGO:</span> <span class="font-bold ${isStrong ? 'text-red-400' : 'text-blue-400'}">${info.lego}</span></p>
+                                <p class="flex justify-between"><span>形態:</span> <span class="text-yellow-400">${info.pattern}</span></p>
+                                <p class="flex justify-between"><span>資金流:</span> <span class="text-emerald-300">${info.flow}</span></p>
                             </div>
-
-                            <div class="mt-4 pt-3 border-t border-slate-800 text-[9px] text-slate-600 flex justify-between">
-                                <span>SYNC SUCCESS</span>
-                                <span>UPDATED: ${info.update.split(' ')[1]}</span>
-                            </div>
+                            <div class="mt-4 text-[10px] text-slate-500 text-right">更新於: ${info.update}</div>
                         </div>
                     `;
                 }
-            } catch (error) {
-                console.error("算力抓取失敗:", error);
+                document.getElementById('time-display').innerText = `系統狀態：正常運行 | AEST: ${new Date().toLocaleString()}`;
+            } catch(e) {
+                console.error("加載失敗", e);
             }
         }
-        loadData();
-        setInterval(loadData, 60000); // 每分鐘刷新一次 UI
+        updateData();
+        setInterval(updateData, 60000);
     </script>
 </body>
 </html>
