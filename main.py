@@ -7,7 +7,7 @@ import numpy as np
 from datetime import datetime
 import time
 
-# 戰區板塊定義
+# 板塊戰區定義
 SECTORS = {
     "AI 新貴 (100/2513/3317)": ["0100.HK", "2513.HK", "3317.HK"],
     "科技龍頭與平台": ["1810.HK", "3690.HK", "0700.HK", "9988.HK"],
@@ -28,35 +28,38 @@ def get_aastock_flow(symbol):
         return flow.strip(), vol.strip()
     except: return "流向計算中", "N/A"
 
-def analyze_lego_and_patterns(df):
+def analyze_logic(df):
     try:
-        # 解決 yfinance 多重索引問題
+        # 強制修復 yfinance 多層索引
         if isinstance(df.columns, pd.MultiIndex):
             df.columns = df.columns.get_level_values(0)
-            
+        
         c = df['Close'].ffill()
         h = df['High'].ffill()
         l = df['Low'].ffill()
         o = df['Open'].ffill()
         v = df['Volume'].ffill()
-        
-        # LEGO 5D 序列
+
+        # 1. LEGO 5D 序列 (突破前5日高低)
         lego = []
         for i in range(-5, 0):
             prev_window = df.iloc[i-5:i]
             if c.iloc[i] > prev_window['High'].max(): lego.append("red")
             elif c.iloc[i] < prev_window['Low'].min(): lego.append("blue")
             else: lego.append("gray")
-            
-        # 形態辨識 (命中率 70% 邏輯)
+
+        # 2. 命中率 70% 形態邏輯
         pattern = "觀察中"
         ma5 = c.rolling(5).mean()
-        # ✈️ 飛機: 均線多頭
-        if c.iloc[-1] > ma5.iloc[-1] > ma5.iloc[-2]: pattern = "✈️ 飛機起飛"
-        # 🦴 骨頭: 長上影線洗盤
-        elif (h.iloc[-1] - max(c.iloc[-1], o.iloc[-1])) > abs(c.iloc[-1]-o.iloc[-1])*1.5: pattern = "🦴 骨頭洗盤"
-        # 👑 皇冠: 20日高位突破
-        elif c.iloc[-1] >= h.tail(20).max() * 0.99: pattern = "👑 皇冠突破"
+        # ✈️ 飛機: 股價高於5日線且5日線向上
+        if c.iloc[-1] > ma5.iloc[-1] and ma5.iloc[-1] > ma5.iloc[-2]:
+            pattern = "✈️ 飛機起飛"
+        # 🦴 骨頭: 上影線 > 實體 1.5 倍
+        elif (h.iloc[-1] - max(c.iloc[-1], o.iloc[-1])) > abs(c.iloc[-1]-o.iloc[-1])*1.5:
+            pattern = "🦴 骨頭洗盤"
+        # 👑 皇冠: 突破20日新高
+        elif c.iloc[-1] >= h.tail(20).max() * 0.99:
+            pattern = "👑 皇冠突破"
 
         return {
             "price": round(float(c.iloc[-1]), 3),
@@ -64,9 +67,7 @@ def analyze_lego_and_patterns(df):
             "pattern": pattern,
             "change": f"{round(c.pct_change().iloc[-1]*100, 2)}%"
         }
-    except Exception as e:
-        print(f"Analysis Error: {e}")
-        return None
+    except: return None
 
 def main():
     final_data = []
@@ -77,25 +78,19 @@ def main():
         for s in stocks:
             try:
                 df = yf.download(s, period="40d", interval="1d", progress=False)
-                analysis = analyze_lego_and_patterns(df)
-                
+                analysis = analyze_logic(df)
                 if analysis:
                     flow, vol = get_aastock_flow(s) if ".HK" in s else ("N/A", "N/A")
                     final_data.append({
-                        "sector": sector,
-                        "symbol": s,
-                        "name": names.get(s, s.split('.')[0]),
-                        "flow": flow,
-                        "vol": vol,
-                        **analysis,
-                        "update": now
+                        "sector": sector, "symbol": s, "name": names.get(s, ""),
+                        "flow": flow, "vol": vol, **analysis, "update": now
                     })
                 time.sleep(0.5)
             except: continue
 
     with open('data.json', 'w', encoding='utf-8') as f:
         json.dump(final_data, f, ensure_ascii=False, indent=4)
-    print(f"✅ V9.0 算力寫入完成: {len(final_data)} 隻標的")
+    print("✅ V9.0 算力寫入成功")
 
 if __name__ == "__main__":
     main()
