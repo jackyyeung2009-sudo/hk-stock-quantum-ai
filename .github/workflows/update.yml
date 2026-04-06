@@ -1,18 +1,24 @@
 name: Stock-Quantum-Auto
 on:
   schedule:
-    - cron: '*/15 1-9 * * 1-5' # 港股交易時段每 15 分鐘運行一次
-  workflow_dispatch: # 允許手動觸發測試
+    - cron: '*/15 1-9 * * 1-5' 
+  workflow_dispatch:
+
+# 核心修正：開啟寫入權限，破解 Exit Code 128
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # 消除 2026 Node 警告
     steps:
       - name: 檢出代碼
-        uses: actions/checkout@v4 # 升級到 v4
+        uses: actions/checkout@v4
         
-      - name: 設置 Python 環境
-        uses: actions/setup-python@v5 # 升級到 v5
+      - name: 設置 Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           
@@ -25,9 +31,16 @@ jobs:
         run: python main.py
         
       - name: 推送數據回倉庫
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name "AI-Stock-Bot"
           git config --global user.email "bot@github.com"
           git add data.json
-          git commit -m "算力自動更新: $(date)" || exit 0
-          git push
+          # 如果沒有變化則跳過，避免報錯
+          if git diff --staged --quiet; then
+            echo "數據無變動，跳過提交。"
+          else
+            git commit -m "算力自動更新: $(date)"
+            git push origin main
+          fi
