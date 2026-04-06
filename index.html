@@ -2,56 +2,48 @@
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <title>港股智勝分析矩陣</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>港股智勝 AI 算力矩陣 - 專業版</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #0f172a; color: #e2e8f0; font-family: sans-serif; }
-        .card { background: #1e293b; border-left: 4px solid #3b82f6; }
-        .strong { border-left-color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.2); }
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        body { font-family: 'JetBrains Mono', 'Microsoft JhengHei', monospace; background-color: #020617; color: #f8fafc; }
+        .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s ease; }
+        .lego-red { border-left: 5px solid #ef4444; box-shadow: -10px 0 20px rgba(239, 68, 68, 0.1); }
+        .lego-blue { border-left: 5px solid #3b82f6; box-shadow: -10px 0 20px rgba(59, 130, 246, 0.1); }
+        .pattern-glow { text-shadow: 0 0 8px rgba(250, 204, 21, 0.6); }
+        .btn-refresh { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
     </style>
 </head>
-<body class="p-8">
-    <div class="max-w-6xl mx-auto">
-        <h1 class="text-3xl font-bold mb-2 text-blue-400">🚀 港股形態算力矩陣</h1>
-        <p id="time-display" class="text-slate-500 mb-8 text-sm font-mono"></p>
-        
-        <div id="grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <p class="col-span-3 text-center py-20 text-slate-600">正在調用 GitHub 數據...</p>
-        </div>
-    </div>
+<body class="min-h-screen p-4 md:p-10">
 
-    <script>
-        async function updateData() {
-            try {
-                const res = await fetch('data.json?t=' + Date.now());
-                const data = await res.json();
-                const grid = document.getElementById('grid');
-                grid.innerHTML = '';
-                
-                for (const [s, info] of Object.entries(data)) {
-                    const isStrong = info.lego.includes("紅磚");
-                    grid.innerHTML += `
-                        <div class="card p-6 rounded-xl ${isStrong ? 'strong' : ''}">
-                            <div class="flex justify-between items-center mb-4">
-                                <span class="text-2xl font-bold">${s.split('.')[0]}</span>
-                                <span class="text-xl font-mono text-emerald-400">${info.price}</span>
-                            </div>
-                            <div class="space-y-2 text-sm">
-                                <p class="flex justify-between"><span>LEGO:</span> <span class="font-bold ${isStrong ? 'text-red-400' : 'text-blue-400'}">${info.lego}</span></p>
-                                <p class="flex justify-between"><span>形態:</span> <span class="text-yellow-400">${info.pattern}</span></p>
-                                <p class="flex justify-between"><span>資金流:</span> <span class="text-emerald-300">${info.flow}</span></p>
-                            </div>
-                            <div class="mt-4 text-[10px] text-slate-500 text-right">更新於: ${info.update}</div>
-                        </div>
-                    `;
-                }
-                document.getElementById('time-display').innerText = `系統狀態：正常運行 | AEST: ${new Date().toLocaleString()}`;
-            } catch(e) {
-                console.error("加載失敗", e);
-            }
-        }
-        updateData();
-        setInterval(updateData, 60000);
-    </script>
-</body>
-</html>
+    <header class="max-w-7xl mx-auto mb-10 flex flex-col lg:flex-row justify-between items-end border-b border-slate-800 pb-6">
+        <div>
+            <h1 class="text-4xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-emerald-400">
+                QUANTUM ALPHA MATRIX <span class="text-xs font-normal text-slate-500 bg-slate-800 px-2 py-1 rounded ml-2">V3.5 PRO</span>
+            </h1>
+            <p class="text-slate-400 mt-2 flex items-center gap-2">
+                <i class="fas fa-microchip text-emerald-500"></i> 張士佳 LEGO 系統 + 複合形態實時監控 (15m Sync)
+            </p>
+        </div>
+        
+        <div class="mt-6 lg:mt-0 flex flex-col items-end gap-1">
+            <div id="market-badge" class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-slate-800 text-slate-400 border border-slate-700">
+                Detecting Market Status...
+            </div>
+            <div class="flex items-center gap-4 mt-2">
+                <div class="text-right">
+                    <p class="text-sm font-bold text-blue-400" id="clock-aest">AEST --:--:--</p>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-tighter" id="clock-hkt">HKT --:--:--</p>
+                </div>
+                <button onclick="loadData()" class="btn-refresh p-3 rounded-xl hover:scale-110 active:scale-95 transition-transform shadow-lg">
+                    <i class="fas fa-sync-alt text-white"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main id="stock-grid" class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+        <div class="col-span-full py-20 text-center">
+            <i class="fas fa-circle-notch fa-spin text-4xl text-blue-500 mb-4">
