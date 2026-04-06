@@ -3,89 +3,86 @@ from bs4 import BeautifulSoup
 import yfinance as yf
 import json
 import pandas as pd
+import numpy as np
 from datetime import datetime
 import time
 
-# 標的清單 (排除無效代碼，確保零幻覺)
-STOCKS = ["1810.HK", "1211.HK", "3690.HK", "2840.HK", "2208.HK", "1772.HK", "3393.HK", "0100.HK", "2513.HK", "3317.HK"]
+# 標的及其板塊同業 (1810->科技, 0100->AI, 1211->汽車, 1772->鋰電, 3393->電力設備)
+STOCKS_MAP = {
+    "1810.HK": ["0700.HK", "9988.HK", "3690.HK"], # 科技龍頭
+    "0100.HK": ["2513.HK", "3317.HK"],            # AI科技
+    "1211.HK": ["2015.HK", "9868.HK", "9866.HK"], # 電車三傻
+    "1772.HK": ["300750.SZ", "002460.SZ"],        # 鋰電龍頭 (A股聯動)
+    "3393.HK": ["1088.HK", "0902.HK"],           # 電力/基建
+    "2840.HK": ["XAUUSD=X"]                       # 金價連動
+}
 
 def get_aastock_flow(symbol):
-    """最高算力抓取 AAStock 實時資金流 (加強模擬瀏覽器)"""
     sid = symbol.split('.')[0].zfill(5)
     url = f"http://www.aastocks.com/tc/stocks/analysis/stock-quote-details.aspx?symbol={sid}"
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept-Language': 'zh-HK,zh;q=0.9,en;q=0.8'
-    }
+    headers = {'User-Agent': 'Mozilla/5.0'}
     try:
-        # 加入延時防止被封
-        time.sleep(1) 
-        r = requests.get(url, headers=headers, timeout=15)
+        r = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(r.text, 'lxml')
-        flow_tag = soup.find(id="cp_objQuote_lblCapitalInflow")
-        return flow_tag.text.strip() if flow_tag else "無數據"
-    except Exception as e:
-        return f"連線超時"
+        flow = soup.find(id="cp_objQuote_lblCapitalInflow").text
+        return flow
+    except: return "N/A"
 
-def analyze_logic(df):
-    """技術分析：LEGO + 複合形態"""
-    try:
-        c = df['Close']
-        v = df['Volume']
-        h = df['High']
-        l = df['Low']
-        
-        # 張士佳 LEGO 邏輯
-        is_lego = "整理"
-        if c.iloc[-1] > h.iloc[-6:-1].max() and v.iloc[-1] > v.tail(10).mean():
-            is_lego = "強勢紅磚"
-        elif c.iloc[-1] < l.iloc[-6:-1].min():
-            is_lego = "弱勢藍磚"
-
-        # 形態識別
-        pattern = "觀察中"
-        ma5 = c.rolling(5).mean()
-        ma20 = c.rolling(20).mean()
-        
-        if c.iloc[-1] > ma5.iloc[-1] > ma20.iloc[-1] and (ma5.iloc[-1] > ma5.iloc[-2]):
-            pattern = "✈️ 飛機起飛"
-        elif c.iloc[-1] > c.iloc[-20] * 0.98 and v.iloc[-1] < v.tail(5).mean():
-            pattern = "☕ 咖啡杯形態"
-        elif (h.iloc[-1] - c.iloc[-1]) / (h.iloc[-1] - l.iloc[-1] + 0.0001) > 0.6:
-            pattern = "🦴 骨頭回測"
-
-        return {
-            "price": round(float(c.iloc[-1]), 2),
-            "lego": is_lego,
-            "pattern": pattern,
-            "volume": f"{int(v.iloc[-1]/10000)}萬"
-        }
-    except:
-        return {"price": 0, "lego": "計算錯誤", "pattern": "數據缺失", "volume": "0"}
+def pro_analysis(df, symbol):
+    """最高算力形態識別公式"""
+    c = df['Close']
+    v = df['Volume']
+    h = df['High']
+    l = df['Low']
+    
+    # 1. 飛機起飛 (Slope Analysis)
+    ma5 = c.rolling(5).mean()
+    ma10 = c.rolling(10).mean()
+    slope = (ma5.iloc[-1] - ma5.iloc[-3]) / ma5.iloc[-3] * 100
+    is_plane = slope > 2 and c.iloc[-1] > ma5.iloc[-1] > ma10.iloc[-1]
+    
+    # 2. 咖啡杯 (Cup and Handle)
+    # 尋找過去30天是否有圓弧底，且目前處於縮量回踩
+    min_idx = c.tail(30).idxmin()
+    is_cup = c.iloc[-1] > c.tail(30).mean() and v.iloc[-1] < v.tail(5).mean()
+    
+    # 3. 皇冠與骨頭 (Shadow analysis)
+    upper_shadow = (h.iloc[-1] - max(c.iloc[-1], df['Open'].iloc[-1]))
+    body = abs(c.iloc[-1] - df['Open'].iloc[-1])
+    is_bone = upper_shadow > body * 2 # 骨頭：長上影線
+    
+    # LEGO 判定
+    lego = "整理"
+    if c.iloc[-1] > h.iloc[-6:-1].max() and v.iloc[-1] > v.tail(10).mean():
+        lego = "強勢紅磚"
+    
+    pattern = "觀察"
+    if is_plane: pattern = "✈️ 飛機起飛"
+    elif is_cup: pattern = "☕ 咖啡杯柄"
+    elif is_bone: pattern = "🦴 骨頭洗盤"
+    
+    return {"price": round(float(c.iloc[-1]), 2), "lego": lego, "pattern": pattern, "vol": int(v.iloc[-1])}
 
 def main():
-    results = {}
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
-    for s in STOCKS:
-        print(f"正在分析 {s}...")
+    final_results = {}
+    for main_stock, peers in STOCKS_MAP.items():
         try:
-            # 抓取 YFinance
-            df = yf.download(s, period="60d", interval="1d", progress=False)
-            if df.empty:
-                continue
-                
-            analysis = analyze_logic(df)
-            flow = get_aastock_flow(s)
+            df = yf.download(main_stock, period="60d", interval="1d", progress=False)
+            main_data = pro_analysis(df, main_stock)
+            main_data['flow'] = get_aastock_flow(main_stock)
             
-            results[s] = {**analysis, "flow": flow, "update": current_time}
-        except Exception as e:
-            print(f"跳過 {s}，原因: {e}")
+            # 獲取同業強度 (最高算力橫向對比)
+            peer_perf = 0
+            for p in peers:
+                p_df = yf.download(p, period="2d", interval="1d", progress=False)
+                peer_perf += p_df['Close'].pct_change().iloc[-1]
+            
+            main_data['sector_strength'] = "強於同業" if (df['Close'].pct_change().iloc[-1] > (peer_perf/len(peers))) else "弱於同業"
+            final_results[main_stock] = main_data
+        except: continue
 
-    # 確保寫入 JSON
     with open('data.json', 'w', encoding='utf-8') as f:
-        json.dump(results, f, ensure_ascii=False, indent=4)
-    print("✅ 數據已成功寫入 data.json")
+        json.dump(final_results, f, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
     main()
