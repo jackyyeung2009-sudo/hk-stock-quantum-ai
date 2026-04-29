@@ -5,17 +5,17 @@
         "name": "智譜 AI",
         "flow": "流向計算中",
         "vol": "N/A",
-        "price": 914.5,
+        "price": 816.5,
         "lego": [
             "gray",
             "gray",
             "gray",
-            "gray",
+            "blue",
             "gray"
         ],
         "pattern": "🦴 骨頭洗盤",
-        "change": "0.0%",
-        "update": "2026-04-28 16:25"
+        "change": "2.06%",
+        "update": "2026-04-29 09:23"
     },
     {
         "sector": "AI 新貴 (100/2513/3317)",
@@ -23,17 +23,17 @@
         "name": "迅策科技",
         "flow": "流向計算中",
         "vol": "N/A",
-        "price": 305.0,
+        "price": 264.0,
         "lego": [
-            "gray",
             "gray",
             "blue",
             "gray",
+            "blue",
             "gray"
         ],
         "pattern": "🦴 骨頭洗盤",
-        "change": "0.0%",
-        "update": "2026-04-28 16:25"
+        "change": "1.54%",
+        "update": "2026-04-29 09:23"
     },
     {
         "sector": "科技龍頭與平台",
@@ -41,17 +41,17 @@
         "name": "",
         "flow": "流向計算中",
         "vol": "N/A",
-        "price": 31.1,
+        "price": 30.14,
         "lego": [
             "gray",
             "gray",
             "gray",
-            "gray",
+            "blue",
             "gray"
         ],
         "pattern": "觀察中",
-        "change": "0.0%",
-        "update": "2026-04-28 16:25"
+        "change": "0.74%",
+        "update": "2026-04-29 09:23"
     },
     {
         "sector": "科技龍頭與平台",
@@ -59,17 +59,17 @@
         "name": "",
         "flow": "流向計算中",
         "vol": "N/A",
-        "price": 81.85,
+        "price": 83.15,
         "lego": [
             "blue",
+            "gray",
+            "gray",
             "blue",
-            "gray",
-            "gray",
             "gray"
         ],
         "pattern": "觀察中",
-        "change": "0.0%",
-        "update": "2026-04-28 16:25"
+        "change": "3.55%",
+        "update": "2026-04-29 09:23"
     },
     {
         "sector": "科技龍頭與平台",
@@ -77,17 +77,17 @@
         "name": "",
         "flow": "流向計算中",
         "vol": "N/A",
-        "price": 478.6,
+        "price": 479.2,
         "lego": [
-            "gray",
+            "blue",
             "blue",
             "blue",
             "blue",
             "gray"
         ],
         "pattern": "觀察中",
-        "change": "0.0%",
-        "update": "2026-04-28 16:25"
+        "change": "1.14%",
+        "update": "2026-04-29 09:23"
     },
     {
         "sector": "科技龍頭與平台",
@@ -95,17 +95,17 @@
         "name": "",
         "flow": "流向計算中",
         "vol": "N/A",
-        "price": 130.2,
+        "price": 130.6,
         "lego": [
-            "gray",
             "blue",
             "gray",
             "gray",
+            "blue",
             "gray"
         ],
         "pattern": "觀察中",
-        "change": "0.0%",
-        "update": "2026-04-28 16:25"
+        "change": "3.24%",
+        "update": "2026-04-29 09:23"
     },
     {
         "sector": "汽車與鋰電板塊",
@@ -113,17 +113,17 @@
         "name": "",
         "flow": "流向計算中",
         "vol": "N/A",
-        "price": 106.0,
+        "price": 108.3,
         "lego": [
+            "blue",
+            "blue",
             "gray",
-            "blue",
-            "blue",
             "gray",
             "gray"
         ],
-        "pattern": "觀察中",
-        "change": "0.0%",
-        "update": "2026-04-28 16:25"
+        "pattern": "✈️ 飛機起飛",
+        "change": "4.44%",
+        "update": "2026-04-29 09:23"
     },
     {
         "sector": "汽車與鋰電板塊",
@@ -131,17 +131,17 @@
         "name": "",
         "flow": "流向計算中",
         "vol": "N/A",
-        "price": 80.0,
+        "price": 83.95,
         "lego": [
-            "gray",
             "blue",
             "gray",
             "gray",
-            "gray"
+            "gray",
+            "red"
         ],
-        "pattern": "觀察中",
-        "change": "0.0%",
-        "update": "2026-04-28 16:25"
+        "pattern": "✈️ 飛機起飛",
+        "change": "6.94%",
+        "update": "2026-04-29 09:23"
     },
     {
         "sector": "汽車與鋰電板塊",
@@ -149,17 +149,17 @@
         "name": "",
         "flow": "流向計算中",
         "vol": "N/A",
-        "price": 69.7,
+        "price": 69.25,
         "lego": [
-            "gray",
             "gray",
             "blue",
             "gray",
+            "blue",
             "gray"
         ],
-        "pattern": "觀察中",
-        "change": "0.0%",
-        "update": "2026-04-28 16:25"
+        "pattern": "🦴 骨頭洗盤",
+        "change": "3.36%",
+        "update": "2026-04-29 09:23"
     },
     {
         "sector": "新能源與電力",
@@ -167,17 +167,17 @@
         "name": "",
         "flow": "流向計算中",
         "vol": "N/A",
-        "price": 28.1,
+        "price": 26.46,
         "lego": [
             "blue",
             "blue",
-            "blue",
             "gray",
+            "blue",
             "gray"
         ],
         "pattern": "觀察中",
-        "change": "0.0%",
-        "update": "2026-04-28 16:25"
+        "change": "6.27%",
+        "update": "2026-04-29 09:23"
     },
     {
         "sector": "新能源與電力",
@@ -185,7 +185,7 @@
         "name": "",
         "flow": "流向計算中",
         "vol": "N/A",
-        "price": 16.91,
+        "price": 16.56,
         "lego": [
             "gray",
             "gray",
@@ -194,8 +194,8 @@
             "gray"
         ],
         "pattern": "✈️ 飛機起飛",
-        "change": "0.0%",
-        "update": "2026-04-28 16:25"
+        "change": "3.37%",
+        "update": "2026-04-29 09:23"
     },
     {
         "sector": "黃金與商品避險",
@@ -203,17 +203,17 @@
         "name": "",
         "flow": "流向計算中",
         "vol": "N/A",
-        "price": 3394.0,
+        "price": 3292.0,
         "lego": [
+            "gray",
+            "gray",
+            "gray",
             "blue",
-            "gray",
-            "gray",
-            "gray",
-            "gray"
+            "blue"
         ],
-        "pattern": "觀察中",
-        "change": "0.0%",
-        "update": "2026-04-28 16:25"
+        "pattern": "🦴 骨頭洗盤",
+        "change": "-1.23%",
+        "update": "2026-04-29 09:23"
     },
     {
         "sector": "黃金與商品避險",
@@ -221,16 +221,16 @@
         "name": "",
         "flow": "N/A",
         "vol": "N/A",
-        "price": 4596.2,
+        "price": 4587.5,
         "lego": [
             "gray",
             "gray",
             "gray",
-            "gray",
+            "blue",
             "blue"
         ],
         "pattern": "觀察中",
-        "change": "-1.69%",
-        "update": "2026-04-28 16:25"
+        "change": "-0.09%",
+        "update": "2026-04-29 09:23"
     }
 ]
